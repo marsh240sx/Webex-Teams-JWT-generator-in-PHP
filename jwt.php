@@ -1,58 +1,57 @@
 <?php
 $header = json_encode(['typ' => 'JWT','alg' => 'HS256']);
 
-        $payload = json_encode([
-            'sub' => '1',
-            'name'=> 'Guest 1',
-            'iss'=> '<YOUR_ISS>'
-        ]);
-    //exp 1609459200 = Jan 1st 2021
+$payload = json_encode([
+	'sub' => '1',
+	'name' => 'Guest 1',
+	// Enter your ISS
+	'iss' => '<YOUR_ISS>',
+	'exp' =>  (time() + 50) 
+		]);
 
-        // Encode Header to Base64Url String
-        $base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
-        // Encode Payload to Base64Url String
-        $base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
+// Encode Header to Base64Url String
+$base64UrlHeader = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($header));
 
-        $secret = base64_decode("<YOUR_SECRET>");
-        // Create Signature Hash
-        $signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $secret, true);
+// Encode Payload to Base64Url String
+$base64UrlPayload = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($payload));
 
-        // Encode Signature to Base64Url String
-        $base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
+// Enter your secret
+$secret = base64_decode("<YOUR_SECRET>");
 
-    //Code above does not work. Three variants below don't work either.
-        //$base64UrlSignature = $signature;
-        //$base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], $signature);
-        //$base64UrlSignature = base64_encode($signature);
+// Create Signature Hash
+$signature = hash_hmac('sha256', $base64UrlHeader . "." . $base64UrlPayload, $secret, true);
 
-        // Create JWT
-        $jwt = $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
-		
-		echo "JWT: \n" . $jwt . "\n";
+// Encode Signature to Base64Url String
+$base64UrlSignature = str_replace(['+', '/', '='], ['-', '_', ''], base64_encode($signature));
 
-	        $curl = curl_init();
-	        curl_setopt_array($curl, array(
-	        CURLOPT_URL => "https://webexapis.com/v1/jwt/login",
-	        CURLOPT_RETURNTRANSFER => true,
-	        CURLOPT_ENCODING => "",
-	        CURLOPT_MAXREDIRS => 10,
-	        CURLOPT_TIMEOUT => 30,
-	        CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
-	        CURLOPT_CUSTOMREQUEST => "POST",
-	        CURLOPT_HTTPHEADER => array(
-	          "authorization: Bearer " . $jwt,
-	          "content-type: application/json"
-	          ),
-	        ));
+// Create JWT
+$jwt = $base64UrlHeader . "." . $base64UrlPayload . "." . $base64UrlSignature;
 
-	      $response = curl_exec($curl);
-	      $err = curl_error($curl);
+// Print generated JWT to console
+echo "JWT: \n" . $jwt . "\n\n";
 
-	      curl_close($curl);
+// POST to exchange JWT for access token
+$curl = curl_init();
+curl_setopt_array($curl, array(
+CURLOPT_URL => "https://webexapis.com/v1/jwt/login",
+CURLOPT_RETURNTRANSFER => true,
+CURLOPT_ENCODING => "",
+CURLOPT_MAXREDIRS => 10,
+CURLOPT_TIMEOUT => 30,
+CURLOPT_HTTP_VERSION => CURL_HTTP_VERSION_1_1,
+CURLOPT_CUSTOMREQUEST => "POST",
+CURLOPT_HTTPHEADER => array(
+	"authorization: Bearer " . $jwt,
+	"content-type: application/json"
+),
+));
 
-	      if ($err) {
-	        echo "cURL Error #:" . $err;
-	      } else {
-	        echo "Login response: \n" . $response;
-	      }
+$response = curl_exec($curl);
+$err = curl_error($curl);
+curl_close($curl);
+if ($err) {
+	echo "cURL Error #:" . $err;
+} else {
+	echo "Login response: \n" . $response . "\n";
+}
 ?>
