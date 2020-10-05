@@ -1,6 +1,10 @@
 <?php
 $header = json_encode(['typ' => 'JWT','alg' => 'HS256']);
 
+// When generating a JWT the "sub" value determines if the guest user is going to be unique. 
+// If the same "sub" is used and you just update "name" then you're just changing the name of the existing guest user. 
+// If you define a unique "sub" value and a new "name" value then you're creating a new guest user. 
+
 $payload = json_encode([
 	'sub' => '1',
 	'name' => 'Guest 1',
